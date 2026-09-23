@@ -1,0 +1,9 @@
+# Name,     Type, SubType,  Offset,    Size,      Flags
+# 16MB flash, dual OTA (mismo espiritu que min_spiffs.csv de miHMI, escalado).
+# app0/app1: 6 MB cada una (de sobra frente a ~1-1.3 MB reales del firmware).
+# littlefs: resto (~3.9 MB) -- reemplaza a la microSD que esta placa no tiene.
+nvs,        data, nvs,      0x9000,    0x5000,
+otadata,    data, ota,      0xe000,    0x2000,
+app0,       app,  ota_0,    0x10000,   0x600000,
+app1,       app,  ota_1,    0x610000,  0x600000,
+littlefs,   data, spiffs,   0xc10000,  0x3f0000,
