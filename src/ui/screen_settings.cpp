@@ -4,10 +4,10 @@
 #include "config.h"
 #include "data/data_hub.h"
 #include "data/hmi_config.h"
-#include "hal/touch.h"
 #include <lvgl.h>
 #include <stdio.h>
 #include <string.h>
+#include <WiFi.h>
 
 static lv_obj_t *lbl_plc;       /* estado del enlace con el PLC (grande) */
 static lv_obj_t *lbl_ip;        /* IP del HMI */
@@ -17,12 +17,6 @@ static lv_obj_t *lbl_counters;
 
 static void on_back(lv_event_t *e) { (void)e; ui_show_wells(); }
 static void on_config(lv_event_t *e) { (void)e; ui_show_pin(ui_show_config); }
-
-static void on_recal(lv_event_t *e) {
-	(void)e;
-	touch_force_calibrate();
-	lv_obj_invalidate(lv_scr_act());
-}
 
 static lv_obj_t *row(lv_obj_t *parent, const char *k, const char *v, lv_coord_t y) {
 	lv_obj_t *lk = lv_label_create(parent);
@@ -86,6 +80,11 @@ lv_obj_t *screen_settings_create() {
 	         hmicfg::sdMounted() ? " (microSD OK)" : " (sin microSD)");
 	row(scr, "Config", buf, 354);
 
+	/* El boton "Escala" se quito: la calibracion ahora vive en el portal del
+	 * nodo remoto (cambio de rumbo 2026-09), no en el HMI. El boton
+	 * "Recalibr." tambien se quito: el GT911 es tactil capacitivo, calibrado
+	 * de fabrica -- no tiene rutina de recalibracion (ver hal/touch.h), asi
+	 * que el boton no hacia nada (reporte de banco). */
 	lv_obj_t *bcfg = lv_btn_create(scr);
 	lv_obj_set_size(bcfg, 260, 64);
 	lv_obj_align(bcfg, LV_ALIGN_TOP_LEFT, 24, 404);
@@ -94,17 +93,6 @@ lv_obj_t *screen_settings_create() {
 	lv_obj_center(lv_label_create(bcfg));
 	lv_label_set_text(lv_obj_get_child(bcfg, 0), "Configuracion");
 	lv_obj_set_style_text_font(lv_obj_get_child(bcfg, 0), &lv_font_montserrat_20, 0);
-
-	/* El boton "Escala" se quito: la calibracion ahora vive en el portal del
-	 * nodo remoto (cambio de rumbo 2026-09), no en el HMI. */
-	lv_obj_t *brecal = lv_btn_create(scr);
-	lv_obj_set_size(brecal, 200, 64);
-	lv_obj_align(brecal, LV_ALIGN_TOP_LEFT, 300, 404);
-	lv_obj_set_style_bg_color(brecal, COL_TEAL_D, 0);
-	lv_obj_add_event_cb(brecal, on_recal, LV_EVENT_CLICKED, nullptr);
-	lv_obj_center(lv_label_create(brecal));
-	lv_label_set_text(lv_obj_get_child(brecal, 0), "Recalibr.");
-	lv_obj_set_style_text_font(lv_obj_get_child(brecal, 0), &lv_font_montserrat_20, 0);
 
 	/* debajo del titulo: hay hueco antes de la primera fila (y=92) */
 	lv_obj_t *ver = lv_label_create(scr);
@@ -131,10 +119,18 @@ void screen_settings_update() {
 	lv_label_set_text(lbl_plc, txt);
 	lv_obj_set_style_text_color(lbl_plc, col, 0);
 
+	/* IP/RSSI: WiFi es del equipo, no de la fuente de datos activa -- antes se
+	 * pedian a hub.primary() (DataSource::localIp()/linkRssi()), pero solo
+	 * ModbusTcpSource los implementa de verdad; con MockSource de primaria
+	 * (banco de pruebas) esos campos quedaban en "-"/0 pese a estar
+	 * conectado. WiFi.* refleja el enlace real sin importar cual fuente esta
+	 * activa. */
+	bool wifiUp = WiFi.status() == WL_CONNECTED;
 	const char *ssid = hmicfg::get().wifiSsid;
-	lv_label_set_text_fmt(lbl_ip, "%s", pri ? pri->localIp().c_str() : "-");
-	lv_label_set_text_fmt(lbl_wifi, "%s  %d dBm",
-	                      ssid[0] ? ssid : "--", pri ? pri->linkRssi() : 0);
+	if (wifiUp) lv_label_set_text_fmt(lbl_ip, "%s", WiFi.localIP().toString().c_str());
+	else        lv_label_set_text(lbl_ip, "sin WiFi");
+	if (wifiUp) lv_label_set_text_fmt(lbl_wifi, "%s  %d dBm", ssid[0] ? ssid : "--", (int)WiFi.RSSI());
+	else        lv_label_set_text_fmt(lbl_wifi, "%s  desconectado", ssid[0] ? ssid : "--");
 	lv_label_set_text_fmt(lbl_origin, "%s  ~ %u",
 	                      p.origin ? "LOGO! real" : "PLC-SIM", p.heartbeat);
 	lv_label_set_text_fmt(lbl_counters, "%lu / %lu",

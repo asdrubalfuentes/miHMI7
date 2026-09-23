@@ -3,6 +3,27 @@
 Versión del canal OTA: `MAJOR.MINOR.PATCH` (semver numérico). El firmware embebe
 `APP_VERSION`; el CI lo sobreescribe desde el tag `vX.Y.Z` (`FW_VERSION_OVERRIDE`).
 
+## 0.2.2 — IP/RSSI en diagnostico, OTA cada 5 min, menos ruido serie
+
+- **IP y RSSI del HMI no se mostraban en Ajustes/Diagnostico**: se pedian a
+  `DataHub::primary()->localIp()/linkRssi()`, pero solo `ModbusTcpSource`
+  los implementa de verdad (el resto de `DataSource` devuelve "-"/0 por
+  defecto) — y la fuente primaria por defecto es `MockSource` (simulador,
+  ver v0.2.0). `screen_settings.cpp` ahora lee `WiFi.status()/localIP()/
+  RSSI()` directo: es un dato del equipo, no de cual fuente esta activa.
+- **Boton "Recalibr." quitado** de Ajustes: el GT911 es tactil capacitivo
+  calibrado de fabrica, no tiene rutina de recalibracion — el boton
+  (heredado de miHMI/XPT2046 resistivo) no hacia nada (reporte de banco).
+- **Chequeo de OTA cada 5 min** (antes 6 h) — `net/ota_hmi.cpp`.
+- **Menos ruido en el puerto serie**: se quito el log de `disp_flush()`
+  (corria al menos 1 vez/seg sin parar) y el de PRESS/release del tactil en
+  cada toque, mas el escaneo I2C completo en cada arranque — todos eran
+  diagnosticos de puesta en marcha ya resueltos (ver v0.1.0/v0.2.0). Los
+  comandos por consola (`light`, `theme`, `ldr`, `time`, `depth`, `inv`)
+  siguen igual, y se agrego `plc`: vuelca la tabla actual leida de la
+  fuente activa (por estacion: nivel/caudal/acumulados/digitales/alarmas/
+  rssi) mas el estado global del enlace, a pedido en vez de automatico.
+
 ## 0.2.1 — repo público (OTA), fix de fuente y cintillo con scroll forzado
 
 - **Repo pasado a público** (`asdrubalfuentes/miHMI7`): el OTA descarga

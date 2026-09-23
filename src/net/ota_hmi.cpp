@@ -14,7 +14,7 @@ namespace {
 
 volatile bool  s_request   = false;
 uint32_t       s_lastCheck = 0;
-const uint32_t CHECK_EVERY_MS = 6UL * 3600UL * 1000UL;
+const uint32_t CHECK_EVERY_MS = 5UL * 60UL * 1000UL;   /* 5 min (antes 6 h) */
 
 void draw(ota::Phase ph, int pct, const char *d) {
 	LGFX &t = display_lgfx();

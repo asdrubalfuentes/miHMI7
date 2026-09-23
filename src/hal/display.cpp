@@ -33,34 +33,19 @@ bool display_invert() { return s_invert; }
 
 /* --- callback de volcado a pantalla ---
  * Escribe directo sobre el panel fisico (g_lgfx): sin sprite intermedio, sin
- * escalado. Cada rectangulo que LVGL termina de dibujar se manda tal cual. */
-/* Diagnostico temporal (pantalla que no se actualiza tras el primer cuadro,
- * reporte de banco): late cada 1s para ver si disp_flush() sigue vivo, y
- * cronometra el pushImage para detectar si se cuelga ahi. */
-static uint32_t s_flushCalls = 0;
-static uint32_t s_lastFlushLog = 0;
-
+ * escalado. Cada rectangulo que LVGL termina de dibujar se manda tal cual.
+ * (El log por-flush de diagnostico que corria aqui ya cumplio su proposito
+ * en banco -- se quito en v0.2.2 por ser demasiado ruido en el puerto serie,
+ * corria al menos una vez por segundo sin parar.) */
 static void disp_flush(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_p) {
 	uint32_t w = (area->x2 - area->x1 + 1);
 	uint32_t h = (area->y2 - area->y1 + 1);
-
-	s_flushCalls++;
-	uint32_t t0 = millis();
 
 	/* setSwapBytes(true) en display_hw_init() corrige el orden de bytes de
 	 * cada pixel (confirmado en banco: sin esto, texto/tarjetas salian con
 	 * colores mezclados) -- lo hace LovyanGFX de una pasada al empujar,
 	 * mas barato que el swap por pixel de LV_COLOR_16_SWAP en LVGL. */
 	g_lgfx.pushImage(area->x1, area->y1, w, h, (uint16_t *)&color_p->full);
-
-	uint32_t dt = millis() - t0;
-	uint32_t now = millis();
-	if (now - s_lastFlushLog >= 1000 || dt > 100) {
-		s_lastFlushLog = now;
-		Serial.printf("[display] flush #%lu  area=(%d,%d)-(%d,%d)  %lux%lu px  pushImage=%lums\n",
-		              (unsigned long)s_flushCalls, area->x1, area->y1, area->x2, area->y2,
-		              (unsigned long)w, (unsigned long)h, (unsigned long)dt);
-	}
 
 	lv_disp_flush_ready(drv);
 }

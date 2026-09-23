@@ -100,7 +100,9 @@ void setup() {
 }
 
 /* ===== Consola serie ====================================================
-   Una linea + Enter.
+   Una linea + Enter. Sin logging automatico por el puerto serie (v0.2.2:
+   se saco el log de disp_flush() y el de PRESS/release del tactil, eran
+   demasiado ruido en banco) -- lo que hace falta ver se pide por comando.
 
    BRILLO (independiente del tema; sin LDR de fabrica en esta placa, el
    backlight queda fijo en 'blmanual' salvo que se habilite 'light set enabled 1'
@@ -116,6 +118,10 @@ void setup() {
    TEMA (colores, independiente del brillo):
      theme                       muestra el tema actual
      theme auto|claro|oscuro     fija y guarda el modo (auto = por luz ambiente)
+
+   DATOS (tabla actual leida del PLC / fuente activa, para depurar en banco
+   sin desarmar el equipo):
+     plc                         vuelca por estacion + estado global del enlace
 */
 static bool     s_ldrStream = false;
 static uint32_t s_ldrNext   = 0;
@@ -153,6 +159,32 @@ static void cli_print_light() {
 	              light::backlight());
 }
 
+static const char *health_name(SrcHealth h) {
+	return h == SrcHealth::Ok ? "OK" : h == SrcHealth::Stale ? "STALE" : "DOWN";
+}
+
+static void cli_print_plc() {
+	DataHub &hub = DataHub::instance();
+	const PlantData &p = hub.data();
+
+	Serial.printf("--- plc : fuente activa=%s  primaria=%s  respaldo=%s ---\n",
+	              hub.activeSourceName(), health_name(hub.primaryHealth()), health_name(hub.backupHealth()));
+	Serial.printf("  origen=%s  heartbeat=%u  contrato=v%u  alarmOr=0x%04X  tramas OK/ERR=%lu/%lu\n",
+	              p.origin ? "LOGO! real" : "PLC-SIM", p.heartbeat, p.contractVer, p.alarmOr,
+	              (unsigned long)hub.txOk(), (unsigned long)hub.txErr());
+
+	for (uint8_t s = 0; s < p.count; s++) {
+		const WellData &w = p.well[s];
+		Serial.printf("  [%u] %-16s nivel=%.2f(u%u) caudal=%.2f(u%u) dia=%.3fm3 mes=%.3fm3\n",
+		              s, w.name, w.levelEng, w.levelUnit, w.flowEng, w.flowUnit,
+		              w.totalDayM3, w.totalMonthM3);
+		Serial.printf("       presostato=%d voltLocal=%d tamper=%d sirenOn=%d sirenAuto=%d linkOk=%d\n",
+		              w.presostato, w.voltLocal, w.tamper, w.sirenOn, w.sirenAuto, w.linkOk);
+		Serial.printf("       alarmas=0x%04X latcheadas=0x%04X rssi=%d dBm ageS=%u rawLvl=%u rawFlow=%u\n",
+		              w.alarms, w.alarmsLatched, (int)w.rssi, w.ageS, w.levelRaw, w.flowRaw);
+	}
+}
+
 static void cli_exec(char *line) {
 	char *tok[4] = { nullptr, nullptr, nullptr, nullptr };
 	int   nt = 0;
@@ -165,6 +197,8 @@ static void cli_exec(char *line) {
 		return;
 	}
 	if (!strcmp(tok[0], "q")) { s_ldrStream = false; Serial.println("[ldr] stream OFF"); return; }
+
+	if (!strcmp(tok[0], "plc")) { cli_print_plc(); return; }
 
 	if (!strcmp(tok[0], "time")) {
 		if (nt >= 3 && !strcmp(tok[1], "server")) { hmicfg::saveTime(tok[2], nullptr); netclock::begin(); }
@@ -257,7 +291,7 @@ static void cli_exec(char *line) {
 		return;
 	}
 
-	Serial.println("comandos: ldr | q | light | theme");
+	Serial.println("comandos: ldr | q | light | theme | plc");
 }
 
 static void serial_console() {
@@ -303,7 +337,7 @@ void loop() {
 		ui_tick();
 		light::tick();                              /* LDR -> backlight (no-op si enabled=0) */
 		theme_eval_auto(light::ambientBright());    /* THEME_AUTO -> claro/oscuro por luz */
-		otaHmi::service();                          /* OTA: peticion manual o chequeo cada 6 h */
+		otaHmi::service();                          /* OTA: peticion manual o chequeo cada 5 min */
 	}
 
 	delay(LVGL_TASK_MS);
