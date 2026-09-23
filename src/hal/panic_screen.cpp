@@ -12,8 +12,7 @@
 // que el patron es panic -> reboot -> este modulo lo detecta y lo explica.
 //
 // Dibuja directo sobre el panel FISICO (800x480, display_lgfx()) -- corre
-// antes de display_hw_init() montar el lienzo logico de LVGL, asi que usa
-// PHYS_SCREEN_W/H, no SCREEN_W/H.
+// antes de que LVGL este listo, asi que no pasa por el driver de LVGL.
 //
 // El contador de reinicios anormales va en NVS (flash): sobrevive a panic,
 // watchdog, brownout y corte de alimentacion.  RTC_DATA_ATTR NO sirve: el
@@ -68,11 +67,11 @@ static void draw(uint16_t bg, const char *kicker, const char *title,
 
 	t.setTextDatum(TL_DATUM);
 	t.drawString(kicker, 24, 24, 4);
-	t.drawFastHLine(0, 68, PHYS_SCREEN_W, TFT_WHITE);
+	t.drawFastHLine(0, 68, SCREEN_W, TFT_WHITE);
 
 	t.setTextDatum(MC_DATUM);
 	uint8_t tf = (title && strlen(title) <= 18) ? 7 : 4;
-	t.drawString(title, PHYS_SCREEN_W / 2, 124, tf);
+	t.drawString(title, SCREEN_W / 2, 124, tf);
 
 	t.setTextDatum(TL_DATUM);
 	int16_t y = 200;
@@ -82,7 +81,7 @@ static void draw(uint16_t bg, const char *kicker, const char *title,
 
 	t.setTextDatum(BC_DATUM);
 	t.setTextColor(TFT_YELLOW, bg);
-	t.drawString(APP_NAME "  v" APP_VERSION, PHYS_SCREEN_W / 2, PHYS_SCREEN_H - 16, 4);
+	t.drawString(APP_NAME "  v" APP_VERSION, SCREEN_W / 2, SCREEN_H - 16, 4);
 }
 
 void panic_screen_fatal(const char *title, const char *l1,

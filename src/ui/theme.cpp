@@ -90,6 +90,15 @@ static void build_styles() {
 
 static void apply(bool dark, bool rebuild) {
 	PAL = dark ? PAL_DARK : PAL_LIGHT;
+
+	/* NOTA: se probo lv_theme_default_init() aqui para que el fondo "vacio"
+	 * de una pantalla nueva (lv_obj_create(nullptr), sin bg propio) saliera
+	 * en PAL.bg en vez del azul de fabrica de LVGL -- el equipo dejo de
+	 * responder por serie tras flashear eso (no se pudo confirmar la causa
+	 * exacta sin mas pruebas en banco). Se saco. El fondo vacio se soluciona
+	 * en su lugar poniendole bg explicito a cada pantalla en su propio
+	 * screen_*.cpp (ver ui_screen_bg() mas abajo en este archivo). */
+
 	build_styles();
 	if (rebuild) ui_rebuild_all();
 }
@@ -132,6 +141,11 @@ lv_obj_t *ui_card(lv_obj_t *parent) {
 	lv_obj_add_style(c, &st_card, 0);
 	lv_obj_clear_flag(c, LV_OBJ_FLAG_SCROLLABLE);
 	return c;
+}
+
+void ui_screen_bg(lv_obj_t *scr) {
+	lv_obj_set_style_bg_color(scr, PAL.bg, 0);
+	lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
 }
 
 lv_color_t ui_health_color(int health) {

@@ -3,6 +3,48 @@
 Versión del canal OTA: `MAJOR.MINOR.PATCH` (semver numérico). El firmware embebe
 `APP_VERSION`; el CI lo sobreescribe desde el tag `vX.Y.Z` (`FW_VERSION_OVERRIDE`).
 
+## 0.2.0 — hardware verificado en banco + rediseño nativo a 800x480
+
+Todo lo pendiente de v0.1.0 se probó en banco (placa real, `smartpanle`
+WT32-S3-WROVER) y se corrigió con datos reales, no con más suposiciones:
+
+- **Se abandonó el lienzo 320x240 escalado por software** (sprite +
+  `pushRotateZoom`, ver v0.1.0): en banco se vio con temblor/tearing y texto
+  borroso. LVGL ahora dibuja **nativo a 800x480** directo sobre el panel
+  (`hal/display.cpp` reescrito, sin sprite intermedio).
+- **Bug de color encontrado y resuelto:** el texto/tarjetas salían con
+  colores mezclados ("morado", "azul que domina todo") aunque el bus RGB en
+  sí estaba bien — confirmado con un test de pantallas solidas (rojo/verde/
+  azul/blanco vía `g_lgfx.fillScreen()`, sin pasar por LVGL: salían
+  perfectos). Aislado al paso LVGL → `pushImage()`: orden de bytes de cada
+  píxel. Corregido con `g_lgfx.setSwapBytes(true)` (no con
+  `LV_COLOR_16_SWAP=1`, que arregla lo mismo pero por software y por
+  píxel — mucho más lento).
+- **Táctil GT911 confirmado funcionando** (I2C, dirección 0x5D) — el
+  reporte inicial de "no responde" era la renderización rota (arriba), no el
+  driver: con colores/render correctos, los toques se registran bien.
+- **"Se siente lento" resuelto (mayormente):** `ModbusTcpSource` (respaldo)
+  reintentaba conectar cada 3s a un PLC inalcanzable en la red de banco, y
+  `connect()` bloquea — congelaba toda la UI (touch incluido) varios segundos
+  cada vez. Throttle subido a 30s (`src/data/modbus_tcp_source.cpp`). Fix
+  real pendiente: connect no bloqueante.
+- **Fuente de datos por defecto: simulador interno** (`MockSource` como
+  primaria, `ModbusTcpSource` como respaldo — antes al revés) para poder
+  probar pantalla/táctil en banco sin depender de un PLC real.
+- **Rediseño completo de las 9 pantallas** para 800x480 nativo (antes con
+  las mismas coordenadas en píxeles que miHMI a 320x240 — ocupaban ~15% de
+  la pantalla). Fuentes más grandes (Montserrat 20/28/40/48, antes 12/14/16),
+  widgets y botones escalados, sin cambiar la lógica de ninguna pantalla.
+- WiFi de banco (`Indetel`) cargada en `include/secrets.h` (fuera de git).
+
+**Pendiente / conocido:**
+- El cintillo de mensajes (`lbl_ticker`, detalle de estación) todavía no
+  hace scroll de forma confiable pese a angostarlo — falta ver por qué en
+  banco antes de seguir ajustando el ancho a ciegas. Se pidió además sumarle
+  más datos (RSSI, contador de tramas, alarmas) una vez que el scroll ande.
+- Reinicio por USB para flashear: el auto-reset por RTS/DTR no entra solo en
+  modo bootloader en esta placa — hace falta BOOT+RESET manual cada vez.
+
 ## 0.1.0 — puesta en marcha del hardware (puerto de miHMI a 7")
 
 - Primer scaffold del HMI de 7" sobre la placa **Panlee ZX7D00CE01SV13**

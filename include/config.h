@@ -12,16 +12,20 @@
  *   - Sin ranura microSD, sin RS485, sin UART dedicado a LoRa -> esta version
  *     solo usa Modbus TCP por WiFi (igual que ya era el enlace principal en
  *     miHMI); la config persiste solo en NVS (ver data/hmi_config.cpp).
- *   - La UI se porta TAL CUAL (mismo layout que miHMI, 320x240 logico) y se
- *     escala 2.5x/2.0x a los 800x480 fisicos (ver hal/display.cpp) -- opcion
- *     "rapido primero" elegida a proposito; un rediseno nativo a 800x480
- *     queda para una fase posterior si hace falta.
+ *
+ * v0.2.0: se abandono el primer intento (lienzo logico 320x240 escalado por
+ * software a 800x480) -- en banco se vio con temblor/tearing y las letras
+ * salian con fleco de color (separacion R/G/B en los bordes). LVGL ahora
+ * dibuja NATIVO a 800x480 directo sobre el panel (ver hal/display.cpp); el
+ * fleco de color que se ve en banco es mas compatible con timing/skew del
+ * bus RGB que con el escalado de software (que ya no existe), asi que si
+ * persiste el proximo paso es bajar freq_write en hal/lgfx_panel.h.
  */
 #pragma once
 
 /* ============================ Branding ============================ */
 #define APP_NAME        "HMI Captacion de Pozos"
-#define APP_VERSION     "0.1.0"
+#define APP_VERSION     "0.2.0"
 /* El CI (.github/workflows/release.yml) define FW_VERSION_OVERRIDE = X.Y.Z del
  * tag; esa es la version que compara el cliente OTA (net/ota_hmi). */
 #ifdef FW_VERSION_OVERRIDE
@@ -38,18 +42,14 @@
 #define OTA_GH_REPO     "miHMI7"
 
 /* ============================ Pantalla =========================== */
-/* Fisica: 800x480 RGB565 paralelo (ver hal/lgfx_panel.h para el bus/timings).
- * Logica para LVGL: se mantiene 320x240 (igual que miHMI) y hal/display.cpp
- * la escala a la pantalla real con un sprite + pushRotateZoom (zoom no
- * uniforme: 2.5x horizontal, 2.0x vertical -- 800/320 y 480/240 exactos).
- * Ver nota de arriba: layout SIN redisenar todavia, a proposito. */
-#define SCREEN_W        320       /* resolucion LOGICA (la que usa toda la UI/LVGL) */
-#define SCREEN_H        240
-#define PHYS_SCREEN_W   800       /* resolucion FISICA del panel */
-#define PHYS_SCREEN_H   480
-#define UI_ZOOM_X       (float)PHYS_SCREEN_W / (float)SCREEN_W   /* 2.5 */
-#define UI_ZOOM_Y       (float)PHYS_SCREEN_H / (float)SCREEN_H   /* 2.0 */
-#define DRAW_BUF_LINES  32       /* alto del buffer parcial de LVGL (igual que miHMI) */
+/* 800x480 RGB565 paralelo, LVGL dibuja NATIVO a esta resolucion (sin sprite
+ * ni escalado -- ver hal/lgfx_panel.h para el bus/timings del panel). */
+#define SCREEN_W        800
+#define SCREEN_H        480
+/* Buffer parcial de LVGL en PSRAM (ver hal/display.cpp): 800*120*2 = 187.5KB.
+ * Grande a proposito -- pocas llamadas a disp_flush() por pantalla en vez de
+ * muchas chicas, cada pushImage() al panel RGB tiene su propio costo fijo. */
+#define DRAW_BUF_LINES  120
 
 #define PIN_LCD_BL          45      /* backlight, PWM (LovyanGFX Light_PWM) */
 #define PIN_LCD_PCLK        9

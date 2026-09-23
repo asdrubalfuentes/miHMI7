@@ -134,7 +134,7 @@ static void on_ota(lv_event_t *e) {
 /* ---- helper de fila ---- */
 static lv_obj_t *field(lv_obj_t *parent, const char *lab, bool numeric, bool password) {
 	lv_obj_t *row = lv_obj_create(parent);
-	lv_obj_set_size(row, LV_PCT(100), 30);
+	lv_obj_set_size(row, LV_PCT(100), 56);
 	lv_obj_set_style_bg_opa(row, 0, 0);
 	lv_obj_set_style_border_width(row, 0, 0);
 	lv_obj_set_style_pad_all(row, 0, 0);
@@ -142,13 +142,14 @@ static lv_obj_t *field(lv_obj_t *parent, const char *lab, bool numeric, bool pas
 
 	lv_obj_t *l = lv_label_create(row);
 	lv_label_set_text(l, lab);
-	lv_obj_set_style_text_font(l, &lv_font_montserrat_14, 0);
+	lv_obj_set_style_text_font(l, &lv_font_montserrat_20, 0);
 	lv_obj_set_style_text_color(l, COL_MUTED, 0);
 	lv_obj_align(l, LV_ALIGN_LEFT_MID, 0, 0);
 
 	lv_obj_t *ta = lv_textarea_create(row);
-	lv_obj_set_size(ta, 175, 30);
+	lv_obj_set_size(ta, 380, 56);
 	lv_obj_align(ta, LV_ALIGN_RIGHT_MID, 0, 0);
+	lv_obj_set_style_text_font(ta, &lv_font_montserrat_20, 0);
 	lv_textarea_set_one_line(ta, true);
 	if (numeric) {
 		lv_textarea_set_accepted_chars(ta, "0123456789.");
@@ -162,6 +163,7 @@ static lv_obj_t *field(lv_obj_t *parent, const char *lab, bool numeric, bool pas
 
 lv_obj_t *screen_config_create() {
 	lv_obj_t *scr = lv_obj_create(nullptr);
+	ui_screen_bg(scr);
 	lv_obj_set_style_bg_color(scr, COL_BG, 0);
 	lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
 	lv_obj_clear_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
@@ -169,7 +171,7 @@ lv_obj_t *screen_config_create() {
 	/* barra superior */
 	lv_obj_t *top = lv_obj_create(scr);
 	lv_obj_set_pos(top, 0, 0);
-	lv_obj_set_size(top, SCREEN_W, 30);
+	lv_obj_set_size(top, SCREEN_W, 60);
 	lv_obj_set_style_bg_color(top, COL_CARD, 0);
 	lv_obj_set_style_radius(top, 0, 0);
 	lv_obj_set_style_border_width(top, 0, 0);
@@ -177,33 +179,34 @@ lv_obj_t *screen_config_create() {
 	lv_obj_clear_flag(top, LV_OBJ_FLAG_SCROLLABLE);
 
 	lv_obj_t *bb = lv_btn_create(top);
-	lv_obj_set_size(bb, 34, 24);
-	lv_obj_align(bb, LV_ALIGN_LEFT_MID, 6, 0);
+	lv_obj_set_size(bb, 68, 48);
+	lv_obj_align(bb, LV_ALIGN_LEFT_MID, 10, 0);
 	lv_obj_set_style_bg_color(bb, COL_TEAL_D, 0);
 	lv_obj_add_event_cb(bb, on_back, LV_EVENT_CLICKED, nullptr);
 	lv_obj_center(lv_label_create(bb));
 	lv_label_set_text(lv_obj_get_child(bb, 0), LV_SYMBOL_LEFT);
+	lv_obj_set_style_text_font(lv_obj_get_child(bb, 0), &lv_font_montserrat_20, 0);
 
 	lv_obj_t *title = lv_label_create(top);
 	lv_label_set_text(title, "Configuracion");
-	lv_obj_set_style_text_font(title, &lv_font_montserrat_16, 0);
+	lv_obj_set_style_text_font(title, &lv_font_montserrat_28, 0);
 	lv_obj_set_style_text_color(title, COL_TEXT, 0);
-	lv_obj_align(title, LV_ALIGN_LEFT_MID, 48, 0);
+	lv_obj_align(title, LV_ALIGN_LEFT_MID, 96, 0);
 
 	lbl_store = lv_label_create(scr);
 	lv_label_set_text(lbl_store, "almacenamiento: --");
-	lv_obj_set_style_text_font(lbl_store, &lv_font_montserrat_12, 0);
+	lv_obj_set_style_text_font(lbl_store, &lv_font_montserrat_16, 0);
 	lv_obj_set_style_text_color(lbl_store, COL_MUTED, 0);
-	lv_obj_set_pos(lbl_store, 10, 34);
+	lv_obj_set_pos(lbl_store, 20, 68);
 
 	/* formulario scrollable */
 	lv_obj_t *form = lv_obj_create(scr);
-	lv_obj_set_pos(form, 8, 52);
-	lv_obj_set_size(form, SCREEN_W - 16, SCREEN_H - 52 - 48);
+	lv_obj_set_pos(form, 16, 100);
+	lv_obj_set_size(form, SCREEN_W - 32, SCREEN_H - 100 - 88);
 	lv_obj_set_style_bg_opa(form, 0, 0);
 	lv_obj_set_style_border_width(form, 0, 0);
 	lv_obj_set_style_pad_all(form, 0, 0);
-	lv_obj_set_style_pad_row(form, 4, 0);
+	lv_obj_set_style_pad_row(form, 8, 0);
 	lv_obj_set_flex_flow(form, LV_FLEX_FLOW_COLUMN);
 	lv_obj_set_scroll_dir(form, LV_DIR_VER);
 
@@ -226,7 +229,7 @@ lv_obj_t *screen_config_create() {
 
 	/* ---- Tema de colores ---- */
 	lv_obj_t *trow = lv_obj_create(form);
-	lv_obj_set_size(trow, LV_PCT(100), 30);
+	lv_obj_set_size(trow, LV_PCT(100), 56);
 	lv_obj_set_style_bg_opa(trow, 0, 0);
 	lv_obj_set_style_border_width(trow, 0, 0);
 	lv_obj_set_style_pad_all(trow, 0, 0);
@@ -234,40 +237,44 @@ lv_obj_t *screen_config_create() {
 
 	lv_obj_t *tl = lv_label_create(trow);
 	lv_label_set_text(tl, "Tema");
-	lv_obj_set_style_text_font(tl, &lv_font_montserrat_14, 0);
+	lv_obj_set_style_text_font(tl, &lv_font_montserrat_20, 0);
 	lv_obj_set_style_text_color(tl, COL_MUTED, 0);
 	lv_obj_align(tl, LV_ALIGN_LEFT_MID, 0, 0);
 
 	static const char *tn[3] = { "Auto", "Claro", "Oscuro" };
 	for (uint8_t i = 0; i < 3; i++) {
 		btn_theme[i] = lv_btn_create(trow);
-		lv_obj_set_size(btn_theme[i], 58, 28);
-		lv_obj_align(btn_theme[i], LV_ALIGN_RIGHT_MID, -(2 - i) * 60, 0);
+		lv_obj_set_size(btn_theme[i], 110, 52);
+		lv_obj_align(btn_theme[i], LV_ALIGN_RIGHT_MID, -(2 - i) * 118, 0);
 		lv_obj_add_event_cb(btn_theme[i], on_theme_btn, LV_EVENT_CLICKED, (void *)(intptr_t)i);
 		lv_obj_center(lv_label_create(btn_theme[i]));
 		lv_label_set_text(lv_obj_get_child(btn_theme[i], 0), tn[i]);
-		lv_obj_set_style_text_font(btn_theme[i], &lv_font_montserrat_12, 0);
+		lv_obj_set_style_text_font(btn_theme[i], &lv_font_montserrat_16, 0);
 	}
 
 	/* ---- OTA: buscar actualizacion ---- */
 	lv_obj_t *bota = lv_btn_create(form);
-	lv_obj_set_size(bota, LV_PCT(100), 32);
+	lv_obj_set_size(bota, LV_PCT(100), 60);
 	lv_obj_set_style_bg_color(bota, COL_TEAL_D, 0);
 	lv_obj_add_event_cb(bota, on_ota, LV_EVENT_CLICKED, nullptr);
 	lv_obj_center(lv_label_create(bota));
 	lv_label_set_text(lv_obj_get_child(bota, 0), "Buscar actualizacion  (v" APP_VERSION ")");
+	lv_obj_set_style_text_font(lv_obj_get_child(bota, 0), &lv_font_montserrat_20, 0);
 
 	/* GUARDAR */
 	lv_obj_t *bs = lv_btn_create(scr);
-	lv_obj_set_size(bs, SCREEN_W - 16, 40);
-	lv_obj_set_pos(bs, 8, SCREEN_H - 44);
+	lv_obj_set_size(bs, SCREEN_W - 32, 72);
+	lv_obj_set_pos(bs, 16, SCREEN_H - 84);
 	lv_obj_set_style_bg_color(bs, COL_ORANGE, 0);
 	lv_obj_add_event_cb(bs, on_save, LV_EVENT_CLICKED, nullptr);
 	lv_obj_center(lv_label_create(bs));
 	lv_label_set_text(lv_obj_get_child(bs, 0), "GUARDAR");
+	lv_obj_set_style_text_font(lv_obj_get_child(bs, 0), &lv_font_montserrat_28, 0);
 
-	/* teclado compartido (oculto) */
+	/* teclado compartido (oculto). El tamano ya es LV_PCT (responsive); solo
+	 * hacia falta agrandar la letra de las teclas para el panel de 800x480. */
 	kb = lv_keyboard_create(scr);
+	lv_obj_set_style_text_font(kb, &lv_font_montserrat_20, 0);
 	lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
 	lv_obj_add_event_cb(kb, on_kb_event, LV_EVENT_ALL, nullptr);
 

@@ -1,12 +1,20 @@
 #include "display.h"
 #include <lvgl.h>
+#include <esp_heap_caps.h>
 #include "config.h"
 
-static LGFX         g_lgfx;
-static LGFX_Sprite   canvas(&g_lgfx);   /* lienzo logico 320x240 en PSRAM; ver display_hw_init() */
+static LGFX g_lgfx;
 
-/* Buffer parcial de LVGL (igual que miHMI: 1/6 de pantalla LOGICA aprox). */
-static lv_color_t s_buf[SCREEN_W * DRAW_BUF_LINES];
+/* Buffer parcial de LVGL, NATIVO 800x480 (sin sprite intermedio ni escalado
+ * -- version anterior (sprite 320x240 + pushRotateZoom) se saco por temblor/
+ * tearing visible en banco, ver CHANGELOG v0.2.0).
+ *
+ * En PSRAM y bien grande (DRAW_BUF_LINES): con un buffer chico LVGL llama a
+ * disp_flush() muchas veces por cada cambio de pantalla, y cada pushImage()
+ * al panel RGB tiene su propio costo fijo -- eso se sintio en banco como
+ * "cambia muy lento entre pantallas". Menos llamadas, mas grandes cada una,
+ * es la recomendacion estandar para paneles RGB de ESP32-S3 con LVGL. */
+static lv_color_t *s_buf = nullptr;
 static lv_disp_draw_buf_t s_draw_buf;
 static lv_disp_drv_t s_disp_drv;
 
@@ -24,21 +32,35 @@ void display_set_invert(bool on) {
 bool display_invert() { return s_invert; }
 
 /* --- callback de volcado a pantalla ---
- * LVGL dibuja en el lienzo logico 320x240 (canvas, en PSRAM); cuando termina
- * la pasada completa de refresco (lv_disp_flush_is_last), se escala TODO el
- * lienzo de una vez al panel fisico 800x480 con un solo pushRotateZoom --
- * mas barato que reescalar cada rectangulo parcial suelto. */
+ * Escribe directo sobre el panel fisico (g_lgfx): sin sprite intermedio, sin
+ * escalado. Cada rectangulo que LVGL termina de dibujar se manda tal cual. */
+/* Diagnostico temporal (pantalla que no se actualiza tras el primer cuadro,
+ * reporte de banco): late cada 1s para ver si disp_flush() sigue vivo, y
+ * cronometra el pushImage para detectar si se cuelga ahi. */
+static uint32_t s_flushCalls = 0;
+static uint32_t s_lastFlushLog = 0;
+
 static void disp_flush(lv_disp_drv_t *drv, const lv_area_t *area, lv_color_t *color_p) {
 	uint32_t w = (area->x2 - area->x1 + 1);
 	uint32_t h = (area->y2 - area->y1 + 1);
 
-	/* NOTA: si al probar en la placa real los colores salen con rojo/azul
-	 * cambiados, agregar canvas.setSwapBytes(true) en display_hw_init() --
-	 * no se pudo verificar visualmente sin el hardware en mano. */
-	canvas.pushImage(area->x1, area->y1, w, h, (uint16_t *)&color_p->full);
+	s_flushCalls++;
+	uint32_t t0 = millis();
 
-	if (lv_disp_flush_is_last(drv))
-		canvas.pushRotateZoom(&g_lgfx, 0.0f, UI_ZOOM_X, UI_ZOOM_Y);
+	/* setSwapBytes(true) en display_hw_init() corrige el orden de bytes de
+	 * cada pixel (confirmado en banco: sin esto, texto/tarjetas salian con
+	 * colores mezclados) -- lo hace LovyanGFX de una pasada al empujar,
+	 * mas barato que el swap por pixel de LV_COLOR_16_SWAP en LVGL. */
+	g_lgfx.pushImage(area->x1, area->y1, w, h, (uint16_t *)&color_p->full);
+
+	uint32_t dt = millis() - t0;
+	uint32_t now = millis();
+	if (now - s_lastFlushLog >= 1000 || dt > 100) {
+		s_lastFlushLog = now;
+		Serial.printf("[display] flush #%lu  area=(%d,%d)-(%d,%d)  %lux%lu px  pushImage=%lums\n",
+		              (unsigned long)s_flushCalls, area->x1, area->y1, area->x2, area->y2,
+		              (unsigned long)w, (unsigned long)h, (unsigned long)dt);
+	}
 
 	lv_disp_flush_ready(drv);
 }
@@ -50,22 +72,19 @@ void display_backlight_pct(uint8_t pct) {
 
 void display_hw_init() {
 	g_lgfx.init();
-	/* pushRotateZoom centra el lienzo escalado en el pivote del DESTINO;
-	 * sin esto el pivote por defecto es (0,0) y el lienzo queda pegado a
-	 * la esquina en vez de llenar el panel. */
-	g_lgfx.setPivot(PHYS_SCREEN_W / 2.0f, PHYS_SCREEN_H / 2.0f);
+	g_lgfx.setSwapBytes(true);   /* ver nota en disp_flush() */
 	g_lgfx.fillScreen(TFT_BLACK);
-
-	canvas.setColorDepth(16);
-	canvas.setPsram(true);            /* 320*240*2 = 150 KB: va en PSRAM, no en el DRAM interno */
-	canvas.createSprite(SCREEN_W, SCREEN_H);
-	canvas.fillScreen(TFT_BLACK);
-
 	display_backlight_pct(s_bl_pct);
 }
 
 void display_lvgl_init() {
-	lv_disp_draw_buf_init(&s_draw_buf, s_buf, nullptr, SCREEN_W * DRAW_BUF_LINES);
+	size_t bytes = (size_t)SCREEN_W * DRAW_BUF_LINES * sizeof(lv_color_t);
+	s_buf = (lv_color_t *)heap_caps_malloc(bytes, MALLOC_CAP_SPIRAM);
+	if (!s_buf) {
+		Serial.println("[display] sin PSRAM para el buffer de LVGL, cae a DRAM (mas chico)");
+		s_buf = (lv_color_t *)malloc(bytes);
+	}
+	lv_disp_draw_buf_init(&s_draw_buf, s_buf, nullptr, (uint32_t)SCREEN_W * DRAW_BUF_LINES);
 
 	lv_disp_drv_init(&s_disp_drv);
 	s_disp_drv.hor_res  = SCREEN_W;

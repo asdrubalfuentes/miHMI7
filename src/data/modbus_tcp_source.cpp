@@ -86,7 +86,14 @@ void ModbusTcpSource::poll() {
 	}
 	uint32_t now = millis();
 	if (!mb_.isConnected(plcIp_)) {
-		if (now - lastConnTry_ < 3000) return;   // connect() bloquea: no martillearlo
+		/* connect() bloquea (WiFiClient sin timeout corto configurado): con el
+		 * simulador de primaria (ver main.cpp) esta fuente queda de respaldo,
+		 * asi que igual se sigue probando para el failover -- pero si el PLC
+		 * no es alcanzable en la red (banco de pruebas), cada intento congela
+		 * TODA la UI unos segundos. 30s en vez de 3s: mismo failover, 10x menos
+		 * frecuente. Arreglo real pendiente: connect() no bloqueante o en otro
+		 * nucleo/tarea. */
+		if (now - lastConnTry_ < 30000) return;
 		lastConnTry_ = now;
 		mb_.connect(plcIp_, port_);
 		return;                                  // lee en el proximo poll

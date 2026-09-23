@@ -43,11 +43,12 @@ static void on_settings(lv_event_t *e) { (void)e; ui_show_settings(); }
 /* ------------------------- helpers ------------------------- */
 static lv_obj_t *icon_btn(lv_obj_t *parent, const char *sym, lv_coord_t w, lv_event_cb_t cb) {
 	lv_obj_t *b = lv_btn_create(parent);
-	lv_obj_set_size(b, w, 24);
+	lv_obj_set_size(b, w, 48);
 	lv_obj_set_style_bg_color(b, COL_TEAL_D, 0);
 	lv_obj_add_event_cb(b, cb, LV_EVENT_CLICKED, nullptr);
 	lv_obj_t *l = lv_label_create(b);
 	lv_label_set_text(l, sym);
+	lv_obj_set_style_text_font(l, &lv_font_montserrat_20, 0);
 	lv_obj_center(l);
 	return b;
 }
@@ -55,14 +56,14 @@ static lv_obj_t *icon_btn(lv_obj_t *parent, const char *sym, lv_coord_t w, lv_ev
 static lv_obj_t *action_btn(lv_obj_t *parent, const char *txt, lv_color_t col,
                             lv_coord_t x, lv_coord_t w, lv_event_cb_t cb) {
 	lv_obj_t *b = lv_btn_create(parent);
-	lv_obj_set_pos(b, x, SCREEN_H - 44);
-	lv_obj_set_size(b, w, 40);
+	lv_obj_set_pos(b, x, SCREEN_H - 88);
+	lv_obj_set_size(b, w, 70);
 	lv_obj_set_style_bg_color(b, col, 0);
-	lv_obj_set_style_radius(b, 6, 0);
+	lv_obj_set_style_radius(b, 10, 0);
 	lv_obj_add_event_cb(b, cb, LV_EVENT_CLICKED, nullptr);
 	lv_obj_t *l = lv_label_create(b);
 	lv_label_set_text(l, txt);
-	lv_obj_set_style_text_font(l, &lv_font_montserrat_16, 0);
+	lv_obj_set_style_text_font(l, &lv_font_montserrat_28, 0);
 	lv_obj_center(l);
 	return l;
 }
@@ -70,6 +71,7 @@ static lv_obj_t *action_btn(lv_obj_t *parent, const char *txt, lv_color_t col,
 /* ------------------------- create ------------------------- */
 lv_obj_t *screen_well_create() {
 	lv_obj_t *scr = lv_obj_create(nullptr);
+	ui_screen_bg(scr);
 	lv_obj_set_style_bg_color(scr, COL_BG, 0);
 	lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
 	lv_obj_clear_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
@@ -77,35 +79,35 @@ lv_obj_t *screen_well_create() {
 	/* --- barra superior: volver | ‹ nombre › | ajustes --- */
 	lv_obj_t *top = lv_obj_create(scr);
 	lv_obj_set_pos(top, 0, 0);
-	lv_obj_set_size(top, SCREEN_W, 30);
+	lv_obj_set_size(top, SCREEN_W, 60);
 	lv_obj_set_style_bg_color(top, COL_CARD, 0);
 	lv_obj_set_style_radius(top, 0, 0);
 	lv_obj_set_style_border_width(top, 0, 0);
 	lv_obj_set_style_pad_all(top, 0, 0);
 	lv_obj_clear_flag(top, LV_OBJ_FLAG_SCROLLABLE);
 
-	lv_obj_t *blist = icon_btn(top, LV_SYMBOL_LEFT, 34, on_list);
-	lv_obj_align(blist, LV_ALIGN_LEFT_MID, 6, 0);
+	lv_obj_t *blist = icon_btn(top, LV_SYMBOL_LEFT, 68, on_list);
+	lv_obj_align(blist, LV_ALIGN_LEFT_MID, 10, 0);
 
-	lv_obj_t *bprev = icon_btn(top, LV_SYMBOL_LEFT, 26, on_prev);
-	lv_obj_align(bprev, LV_ALIGN_CENTER, -66, 0);
+	lv_obj_t *bprev = icon_btn(top, LV_SYMBOL_LEFT, 52, on_prev);
+	lv_obj_align(bprev, LV_ALIGN_CENTER, -150, 0);
 
 	lbl_name = lv_label_create(top);
 	lv_label_set_text(lbl_name, "Estacion");
-	lv_obj_set_style_text_font(lbl_name, &lv_font_montserrat_16, 0);
+	lv_obj_set_style_text_font(lbl_name, &lv_font_montserrat_28, 0);
 	lv_obj_set_style_text_color(lbl_name, COL_TEXT, 0);
 	lv_obj_align(lbl_name, LV_ALIGN_CENTER, 0, 0);
 
-	lv_obj_t *bnext = icon_btn(top, LV_SYMBOL_RIGHT, 26, on_next);
-	lv_obj_align(bnext, LV_ALIGN_CENTER, 66, 0);
+	lv_obj_t *bnext = icon_btn(top, LV_SYMBOL_RIGHT, 52, on_next);
+	lv_obj_align(bnext, LV_ALIGN_CENTER, 150, 0);
 
-	lv_obj_t *bset = icon_btn(top, LV_SYMBOL_SETTINGS, 34, on_settings);
-	lv_obj_align(bset, LV_ALIGN_RIGHT_MID, -6, 0);
+	lv_obj_t *bset = icon_btn(top, LV_SYMBOL_SETTINGS, 68, on_settings);
+	lv_obj_align(bset, LV_ALIGN_RIGHT_MID, -10, 0);
 
 	/* --- cintillo: tira de mensajes con scroll circular --- */
 	lv_obj_t *tk = lv_obj_create(scr);
-	lv_obj_set_pos(tk, 0, 30);
-	lv_obj_set_size(tk, SCREEN_W, 20);
+	lv_obj_set_pos(tk, 0, 60);
+	lv_obj_set_size(tk, SCREEN_W, 36);
 	lv_obj_set_style_bg_color(tk, COL_SUNKEN, 0);
 	lv_obj_set_style_radius(tk, 0, 0);
 	lv_obj_set_style_border_width(tk, 0, 0);
@@ -114,16 +116,19 @@ lv_obj_t *screen_well_create() {
 
 	lbl_ticker = lv_label_create(tk);
 	lv_label_set_long_mode(lbl_ticker, LV_LABEL_LONG_SCROLL_CIRCULAR);
-	lv_obj_set_width(lbl_ticker, SCREEN_W - 12);
+	/* Mas angosto que el texto real (confirmado en banco: a SCREEN_W-24 no
+	 * desbordaba y no se movia) pero centrado en la barra, no pegado a la
+	 * izquierda (reporte de banco: "se mueve bien, pero no esta centrada"). */
+	lv_obj_set_width(lbl_ticker, 600);
 	lv_label_set_text(lbl_ticker, APP_NAME);
-	lv_obj_set_style_text_font(lbl_ticker, &lv_font_montserrat_12, 0);
+	lv_obj_set_style_text_font(lbl_ticker, &lv_font_montserrat_16, 0);
 	lv_obj_set_style_text_color(lbl_ticker, COL_MUTED, 0);
-	lv_obj_align(lbl_ticker, LV_ALIGN_LEFT_MID, 6, 0);
+	lv_obj_align(lbl_ticker, LV_ALIGN_CENTER, 0, 0);
 
 	/* --- nivel (arco) --- */
 	arc_level = lv_arc_create(scr);
-	lv_obj_set_size(arc_level, 124, 124);
-	lv_obj_set_pos(arc_level, 8, 52);
+	lv_obj_set_size(arc_level, 250, 250);
+	lv_obj_set_pos(arc_level, 40, 100);
 	lv_arc_set_rotation(arc_level, 135);
 	lv_arc_set_bg_angles(arc_level, 0, 270);
 	lv_arc_set_range(arc_level, 0, 100);
@@ -132,68 +137,73 @@ lv_obj_t *screen_well_create() {
 	lv_obj_clear_flag(arc_level, LV_OBJ_FLAG_CLICKABLE);
 	lv_obj_set_style_arc_color(arc_level, COL_CARD, LV_PART_MAIN);
 	lv_obj_set_style_arc_color(arc_level, COL_TEAL, LV_PART_INDICATOR);
-	lv_obj_set_style_arc_width(arc_level, 12, LV_PART_MAIN);
-	lv_obj_set_style_arc_width(arc_level, 12, LV_PART_INDICATOR);
+	lv_obj_set_style_arc_width(arc_level, 26, LV_PART_MAIN);
+	lv_obj_set_style_arc_width(arc_level, 26, LV_PART_INDICATOR);
 
 	lbl_level_pct = lv_label_create(scr);
 	lv_label_set_text(lbl_level_pct, "--%");
-	lv_obj_set_style_text_font(lbl_level_pct, &lv_font_montserrat_28, 0);
+	lv_obj_set_style_text_font(lbl_level_pct, &lv_font_montserrat_48, 0);
 	lv_obj_set_style_text_color(lbl_level_pct, COL_TEXT, 0);
-	lv_obj_align_to(lbl_level_pct, arc_level, LV_ALIGN_CENTER, 0, -6);
+	lv_obj_align_to(lbl_level_pct, arc_level, LV_ALIGN_CENTER, 0, -18);
 
 	lbl_level_m = lv_label_create(scr);
 	lv_label_set_text(lbl_level_m, "-- m");
-	lv_obj_set_style_text_font(lbl_level_m, &lv_font_montserrat_16, 0);
+	lv_obj_set_style_text_font(lbl_level_m, &lv_font_montserrat_28, 0);
 	lv_obj_set_style_text_color(lbl_level_m, COL_MUTED, 0);
-	lv_obj_align_to(lbl_level_m, arc_level, LV_ALIGN_CENTER, 0, 22);
+	lv_obj_align_to(lbl_level_m, arc_level, LV_ALIGN_CENTER, 0, 44);
 
 	lv_obj_t *lvl_title = lv_label_create(scr);
 	lv_label_set_text(lvl_title, "NIVEL");
 	lv_obj_add_style(lvl_title, &st_title, 0);
-	lv_obj_align_to(lvl_title, arc_level, LV_ALIGN_OUT_BOTTOM_MID, 0, 2);
+	lv_obj_set_style_text_font(lvl_title, &lv_font_montserrat_20, 0);
+	lv_obj_align_to(lvl_title, arc_level, LV_ALIGN_OUT_BOTTOM_MID, 0, 6);
 
 	/* --- caudal + acumulado del dia --- */
+	static const lv_coord_t RX = 420;   /* columna derecha */
+
 	lv_obj_t *flow_title = lv_label_create(scr);
 	lv_label_set_text(flow_title, "CAUDAL");
 	lv_obj_add_style(flow_title, &st_title, 0);
-	lv_obj_set_pos(flow_title, 156, 54);
+	lv_obj_set_style_text_font(flow_title, &lv_font_montserrat_20, 0);
+	lv_obj_set_pos(flow_title, RX, 104);
 
 	lbl_flow = lv_label_create(scr);
 	lv_label_set_text(lbl_flow, "-- L/s");
-	lv_obj_set_style_text_font(lbl_flow, &lv_font_montserrat_28, 0);
+	lv_obj_set_style_text_font(lbl_flow, &lv_font_montserrat_48, 0);
 	lv_obj_set_style_text_color(lbl_flow, COL_TEXT, 0);
-	lv_obj_set_pos(lbl_flow, 156, 68);
+	lv_obj_set_pos(lbl_flow, RX, 130);
 
 	lv_obj_t *today_title = lv_label_create(scr);
 	lv_label_set_text(today_title, "ACUMULADO HOY");
 	lv_obj_add_style(today_title, &st_title, 0);
-	lv_obj_set_pos(today_title, 156, 114);
+	lv_obj_set_style_text_font(today_title, &lv_font_montserrat_20, 0);
+	lv_obj_set_pos(today_title, RX, 210);
 
 	lbl_today = lv_label_create(scr);
 	lv_label_set_text(lbl_today, "-- m3");
-	lv_obj_set_style_text_font(lbl_today, &lv_font_montserrat_28, 0);
+	lv_obj_set_style_text_font(lbl_today, &lv_font_montserrat_48, 0);
 	lv_obj_set_style_text_color(lbl_today, COL_TEAL, 0);
-	lv_obj_set_pos(lbl_today, 156, 126);
+	lv_obj_set_pos(lbl_today, RX, 236);
 
 	/* estado de la estacion: bajo ACUMULADO (antes en el cintillo, se solapaba) */
 	lbl_status = lv_label_create(scr);
 	lv_label_set_text(lbl_status, "--");
-	lv_obj_set_style_text_font(lbl_status, &lv_font_montserrat_16, 0);
-	lv_obj_set_pos(lbl_status, 156, 160);
+	lv_obj_set_style_text_font(lbl_status, &lv_font_montserrat_28, 0);
+	lv_obj_set_pos(lbl_status, RX, 310);
 
 	/* alarma activa (linea que hace scroll) */
 	lbl_alarms = lv_label_create(scr);
 	lv_label_set_long_mode(lbl_alarms, LV_LABEL_LONG_SCROLL_CIRCULAR);
-	lv_obj_set_width(lbl_alarms, 156);
+	lv_obj_set_width(lbl_alarms, SCREEN_W - RX - 20);
 	lv_label_set_text(lbl_alarms, "");
-	lv_obj_set_style_text_font(lbl_alarms, &lv_font_montserrat_12, 0);
+	lv_obj_set_style_text_font(lbl_alarms, &lv_font_montserrat_20, 0);
 	lv_obj_set_style_text_color(lbl_alarms, COL_WARN, 0);
-	lv_obj_set_pos(lbl_alarms, 156, 182);
+	lv_obj_set_pos(lbl_alarms, RX, 350);
 
 	/* --- botonera inferior: Estacion N | ACCIONES | historico --- */
-	lbl_stnbtn = action_btn(scr, "Estacion", COL_TEAL_D, 8, 100, on_list);
-	action_btn(scr, "ACCIONES", COL_TEAL_D, 112, 110, on_actions);
-	action_btn(scr, LV_SYMBOL_LIST, COL_TEAL_D, 228, 84, on_hist);
+	lbl_stnbtn = action_btn(scr, "Estacion", COL_TEAL_D, 20, 250, on_list);
+	action_btn(scr, "ACCIONES", COL_TEAL_D, 280, 270, on_actions);
+	action_btn(scr, LV_SYMBOL_LIST, COL_TEAL_D, 560, 210, on_hist);
 
 	return scr;
 }

@@ -70,13 +70,14 @@ static void on_cancel(lv_event_t *e) {
 
 lv_obj_t *screen_pin_create() {
 	lv_obj_t *scr = lv_obj_create(nullptr);
+	ui_screen_bg(scr);
 	lv_obj_set_style_bg_color(scr, COL_BG, 0);
 	lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
 	lv_obj_clear_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
 
 	lv_obj_t *top = lv_obj_create(scr);
 	lv_obj_set_pos(top, 0, 0);
-	lv_obj_set_size(top, SCREEN_W, 30);
+	lv_obj_set_size(top, SCREEN_W, 60);
 	lv_obj_set_style_bg_color(top, COL_CARD, 0);
 	lv_obj_set_style_radius(top, 0, 0);
 	lv_obj_set_style_border_width(top, 0, 0);
@@ -84,30 +85,31 @@ lv_obj_t *screen_pin_create() {
 	lv_obj_clear_flag(top, LV_OBJ_FLAG_SCROLLABLE);
 
 	lv_obj_t *bx = lv_btn_create(top);
-	lv_obj_set_size(bx, 34, 24);
-	lv_obj_align(bx, LV_ALIGN_LEFT_MID, 6, 0);
+	lv_obj_set_size(bx, 68, 48);
+	lv_obj_align(bx, LV_ALIGN_LEFT_MID, 10, 0);
 	lv_obj_set_style_bg_color(bx, COL_TEAL_D, 0);
 	lv_obj_add_event_cb(bx, on_cancel, LV_EVENT_CLICKED, nullptr);
 	lv_obj_center(lv_label_create(bx));
 	lv_label_set_text(lv_obj_get_child(bx, 0), LV_SYMBOL_CLOSE);
+	lv_obj_set_style_text_font(lv_obj_get_child(bx, 0), &lv_font_montserrat_20, 0);
 
 	lbl_title = lv_label_create(top);
 	lv_label_set_text(lbl_title, "PIN de administrador");
-	lv_obj_set_style_text_font(lbl_title, &lv_font_montserrat_16, 0);
+	lv_obj_set_style_text_font(lbl_title, &lv_font_montserrat_28, 0);
 	lv_obj_set_style_text_color(lbl_title, COL_TEXT, 0);
-	lv_obj_align(lbl_title, LV_ALIGN_LEFT_MID, 48, 0);
+	lv_obj_align(lbl_title, LV_ALIGN_LEFT_MID, 96, 0);
 
 	lbl_dots = lv_label_create(scr);
 	lv_label_set_text(lbl_dots, "----");
-	lv_obj_set_style_text_font(lbl_dots, &lv_font_montserrat_28, 0);
+	lv_obj_set_style_text_font(lbl_dots, &lv_font_montserrat_48, 0);
 	lv_obj_set_style_text_color(lbl_dots, COL_TEXT, 0);
-	lv_obj_align(lbl_dots, LV_ALIGN_TOP_MID, 0, 44);
+	lv_obj_align(lbl_dots, LV_ALIGN_TOP_MID, 0, 76);
 
 	lv_obj_t *m = lv_btnmatrix_create(scr);
 	lv_btnmatrix_set_map(m, KEYMAP);
-	lv_obj_set_size(m, SCREEN_W - 24, SCREEN_H - 92);
-	lv_obj_align(m, LV_ALIGN_BOTTOM_MID, 0, -8);
-	lv_obj_set_style_text_font(m, &lv_font_montserrat_20, 0);
+	lv_obj_set_size(m, SCREEN_W - 48, SCREEN_H - 160);
+	lv_obj_align(m, LV_ALIGN_BOTTOM_MID, 0, -16);
+	lv_obj_set_style_text_font(m, &lv_font_montserrat_40, 0);
 	lv_obj_add_event_cb(m, on_key, LV_EVENT_VALUE_CHANGED, nullptr);
 
 	return scr;

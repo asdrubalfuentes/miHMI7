@@ -24,48 +24,54 @@ static void splash_timer_cb(lv_timer_t *t) {
 
 lv_obj_t *screen_splash_create() {
 	lv_obj_t *scr = lv_obj_create(nullptr);
+	ui_screen_bg(scr);
 	lv_obj_set_style_bg_color(scr, lv_color_white(), 0);
 	lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
 	lv_obj_clear_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
 
-	/* Logo de la empresa cliente (arriba) */
+	/* Logo de la empresa cliente (arriba). Los assets son bitmaps generados a
+	 * baja resolucion para la CYD (236x39/250x109) -- se agrandan con zoom de
+	 * LVGL en vez de regenerarlos (no hay fuente vectorial a mano en este
+	 * proyecto); a 2x siguen viendose nitidos para un logo simple. */
 #ifdef HAVE_LOGO_CLIENTE
 	lv_obj_t *client = lv_img_create(scr);
 	lv_img_set_src(client, &logo_cliente);
-	lv_obj_align(client, LV_ALIGN_TOP_MID, 0, 20);
+	lv_img_set_zoom(client, 512);   /* 256 = 100% */
+	lv_obj_align(client, LV_ALIGN_TOP_MID, 0, 40);
 #else
 	lv_obj_t *client = lv_label_create(scr);
 	lv_label_set_text(client, CLIENT_NAME);
 	lv_obj_set_style_text_color(client, lv_color_hex(0x555555), 0);
-	lv_obj_set_style_text_font(client, &lv_font_montserrat_16, 0);
-	lv_obj_align(client, LV_ALIGN_TOP_MID, 0, 24);
+	lv_obj_set_style_text_font(client, &lv_font_montserrat_28, 0);
+	lv_obj_align(client, LV_ALIGN_TOP_MID, 0, 48);
 #endif
 
 	/* Logo / marca del producto (centro) */
 #ifdef HAVE_LOGO_AYSAFI
 	lv_obj_t *logo = lv_img_create(scr);
 	lv_img_set_src(logo, &logo_aysafi);
-	lv_obj_align(logo, LV_ALIGN_CENTER, 0, -2);
+	lv_img_set_zoom(logo, 512);   /* 256 = 100% */
+	lv_obj_align(logo, LV_ALIGN_CENTER, 0, -4);
 #else
 	lv_obj_t *brand = lv_label_create(scr);
 	lv_label_set_text(brand, "AYSAFI");
 	lv_obj_set_style_text_color(brand, COL_TEAL, 0);
 	lv_obj_set_style_text_font(brand, &lv_font_montserrat_48, 0);
-	lv_obj_align(brand, LV_ALIGN_CENTER, 0, -8);
+	lv_obj_align(brand, LV_ALIGN_CENTER, 0, -16);
 
 	lv_obj_t *sub = lv_label_create(scr);
 	lv_label_set_text(sub, "Ingenieria y Tecnologia");
 	lv_obj_set_style_text_color(sub, COL_ORANGE, 0);
-	lv_obj_set_style_text_font(sub, &lv_font_montserrat_14, 0);
-	lv_obj_align(sub, LV_ALIGN_CENTER, 0, 32);
+	lv_obj_set_style_text_font(sub, &lv_font_montserrat_20, 0);
+	lv_obj_align(sub, LV_ALIGN_CENTER, 0, 48);
 #endif
 
 	/* Pie: nombre de la aplicacion + version */
 	lv_obj_t *ver = lv_label_create(scr);
 	lv_label_set_text_fmt(ver, "%s   v%s", APP_NAME, APP_VERSION);
 	lv_obj_set_style_text_color(ver, lv_color_hex(0x8A8A8A), 0);
-	lv_obj_set_style_text_font(ver, &lv_font_montserrat_12, 0);
-	lv_obj_align(ver, LV_ALIGN_BOTTOM_MID, 0, -12);
+	lv_obj_set_style_text_font(ver, &lv_font_montserrat_16, 0);
+	lv_obj_align(ver, LV_ALIGN_BOTTOM_MID, 0, -24);
 
 	lv_timer_create(splash_timer_cb, SPLASH_MS, nullptr);
 	return scr;

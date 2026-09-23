@@ -1,8 +1,7 @@
 /**
  * lv_conf.h  -  Configuracion LVGL 8.4 para el HMI de 7" (Panlee ZX7D00CE01SV13)
  *
- * LVGL sigue dibujando a 320x240 logico (igual que miHMI); hal/display.cpp
- * escala ese lienzo al panel fisico 800x480. Ver ese archivo para el detalle.
+ * LVGL dibuja NATIVO a 800x480 directo sobre el panel (ver hal/display.cpp).
  *
  * Solo se redefinen las opciones que difieren del valor por defecto de LVGL.
  * El resto lo completa lv_conf_internal.h con #ifndef.
@@ -17,10 +16,18 @@
  *  Color
  *--------------------------*/
 #define LV_COLOR_DEPTH 16
-/* Bus RGB565 paralelo (no SPI): el valor de pixel de LVGL se escribe directo
- * en el lienzo LovyanGFX sin swap de bytes (ver hal/display.cpp disp_flush).
- * Si al probar en la placa real los colores salen invertidos (rojo<->azul),
- * poner esto a 1 -- no se pudo verificar visualmente sin el hardware en mano. */
+/* CONFIRMADO en banco (v0.2.x): rellenos solidos via LovyanGFX puro
+ * (g_lgfx.fillScreen(), sin pasar por LVGL) salian perfectos -- rojo, verde,
+ * azul y blanco correctos -- pero el contenido dibujado por LVGL (texto,
+ * tarjetas) salia con colores mezclados/morados. Eso aisla el problema al
+ * paso LVGL -> pushImage(): el orden de bytes de cada pixel de 16 bits que
+ * arma LVGL no coincidia con el que espera el panel.
+ *
+ * Poner esto en 1 lo arregla, pero LVGL hace el swap POR PIXEL en software
+ * durante el renderizado -- se sintio mucho mas lento en banco. El swap se
+ * mueve en su lugar a hal/display.cpp (g_lgfx.setSwapBytes(true)), que lo
+ * hace LovyanGFX de una sola vez al empujar cada rectangulo, no LVGL pixel
+ * a pixel -- mismo resultado visual, sin el costo de CPU. */
 #define LV_COLOR_16_SWAP 0
 
 /*---------------------------

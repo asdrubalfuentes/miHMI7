@@ -7,8 +7,8 @@
 #include <lvgl.h>
 
 // Integracion del OTA en el HMI. Ver ota_hmi.h.
-// Dibuja directo sobre el panel FISICO (800x480) -- por eso usa PHYS_SCREEN_W,
-// no SCREEN_W (que es la resolucion LOGICA de LVGL, ver config.h).
+// Dibuja directo sobre el panel FISICO 800x480 (SCREEN_W/H, ver config.h),
+// fuera del driver de LVGL -- toma la pantalla completa durante la descarga.
 
 namespace {
 
@@ -21,7 +21,7 @@ void draw(ota::Phase ph, int pct, const char *d) {
 	t.fillScreen(TFT_BLACK);
 	t.setTextColor(TFT_WHITE, TFT_BLACK);
 	t.setTextDatum(MC_DATUM);
-	t.drawString("Actualizacion de firmware", PHYS_SCREEN_W / 2, 68, 7);
+	t.drawString("Actualizacion de firmware", SCREEN_W / 2, 68, 7);
 
 	const char *m = "";
 	switch (ph) {
@@ -33,18 +33,18 @@ void draw(ota::Phase ph, int pct, const char *d) {
 		case ota::Phase::Done:     m = "Listo. Reiniciando";  break;
 		case ota::Phase::Error:    m = "Error";               break;
 	}
-	t.drawString(m, PHYS_SCREEN_W / 2, 168, 7);
+	t.drawString(m, SCREEN_W / 2, 168, 7);
 
 	if (ph == ota::Phase::Download) {
-		int w = PHYS_SCREEN_W - 150;
+		int w = SCREEN_W - 150;
 		int fill = (w - 8) * (pct < 0 ? 0 : pct > 100 ? 100 : pct) / 100;
 		t.drawRect(75, 252, w, 52, TFT_WHITE);
 		t.fillRect(79, 256, fill, 44, TFT_GREEN);
 		char b[8];
 		snprintf(b, sizeof(b), "%d%%", pct);
-		t.drawString(b, PHYS_SCREEN_W / 2, 344, 7);
+		t.drawString(b, SCREEN_W / 2, 344, 7);
 	}
-	if (d && *d) t.drawString(d, PHYS_SCREEN_W / 2, 412, 4);
+	if (d && *d) t.drawString(d, SCREEN_W / 2, 412, 4);
 }
 
 void run_interactive() {

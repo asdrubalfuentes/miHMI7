@@ -27,8 +27,11 @@
 #include "data/mock_source.h"
 #include "data/modbus_tcp_source.h"
 
-static MockSource      g_mock;   /* respaldo / desarrollo sin PLC */
-static ModbusTcpSource g_plc;    /* primaria: Modbus TCP -> Mapa B (LOGO! 9 / PLC-SIM) */
+static MockSource      g_mock;   /* PRIMARIA por defecto: simulador interno para pruebas de banco
+                                   * (pantalla/tactil) sin depender de que haya un PLC-SIM real
+                                   * en la red. Volver a poner g_plc como primaria cuando se
+                                   * pruebe contra el PLC real. */
+static ModbusTcpSource g_plc;    /* respaldo: Modbus TCP -> Mapa B (LOGO! 9 / PLC-SIM) */
 
 #if LV_USE_LOG
 static void lv_log_cb(const char *buf) {
@@ -78,10 +81,11 @@ void setup() {
 	display_lvgl_init();
 	touch_lvgl_init();
 
-	/* Datos: primaria Modbus TCP (Mapa B); respaldo simulado con failover */
+	/* Datos: primaria el simulador interno (pruebas de banco sin PLC),
+	   respaldo Modbus TCP real -- ver nota junto a g_mock/g_plc arriba. */
 	panic_screen_stage("datos");
-	DataHub::instance().setPrimary(&g_plc);
-	DataHub::instance().setBackup(&g_mock);
+	DataHub::instance().setPrimary(&g_mock);
+	DataHub::instance().setBackup(&g_plc);
 	DataHub::instance().begin();
 
 	netclock::begin();          /* SNTP: sincroniza cuando la WiFi este arriba */

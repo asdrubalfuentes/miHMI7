@@ -59,7 +59,12 @@ public:
 			cfg.pin_hsync   = PIN_LCD_HSYNC;
 			cfg.pin_henable = PIN_LCD_DE;
 
-			cfg.freq_write = 16000000;
+			/* 16MHz (valor del fabricante) dio colores mezclados/morados en banco
+			 * -- sintoma clasico de integridad de senal marginal en el cable/FPC
+			 * del bus paralelo de 16 lineas. Se baja a 10MHz como primer intento
+			 * mas conservador; si sigue mal, seguir bajando (8/6.5MHz) antes de
+			 * sospechar de otra cosa (porches/polaridad). */
+			cfg.freq_write = 10000000;
 
 			cfg.hsync_polarity    = 1;
 			cfg.hsync_front_porch = 20;
@@ -77,10 +82,10 @@ public:
 		{
 			auto cfg = _panel_instance.config();
 
-			cfg.memory_width  = PHYS_SCREEN_W;
-			cfg.panel_width   = PHYS_SCREEN_W;
-			cfg.memory_height = PHYS_SCREEN_H;
-			cfg.panel_height  = PHYS_SCREEN_H;
+			cfg.memory_width  = SCREEN_W;
+			cfg.panel_width   = SCREEN_W;
+			cfg.memory_height = SCREEN_H;
+			cfg.panel_height  = SCREEN_H;
 			cfg.offset_x = 0;
 			cfg.offset_y = 0;
 
@@ -90,9 +95,9 @@ public:
 			auto cfg = _touch_instance.config();
 			cfg.i2c_addr = GT911_I2C_ADDR;
 			cfg.x_min = 0;
-			cfg.x_max = PHYS_SCREEN_W;
+			cfg.x_max = SCREEN_W;
 			cfg.y_min = 0;
-			cfg.y_max = PHYS_SCREEN_H;
+			cfg.y_max = SCREEN_H;
 			cfg.bus_shared      = false;
 			cfg.offset_rotation = 0;
 			cfg.i2c_port = I2C_NUM_1;

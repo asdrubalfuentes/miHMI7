@@ -56,13 +56,13 @@ static lv_obj_t *act_btn(lv_obj_t *parent, const char *txt, lv_color_t col,
                          lv_coord_t x, lv_coord_t y, lv_coord_t w, lv_event_cb_t cb) {
 	lv_obj_t *b = lv_btn_create(parent);
 	lv_obj_set_pos(b, x, y);
-	lv_obj_set_size(b, w, 40);
+	lv_obj_set_size(b, w, 72);
 	lv_obj_set_style_bg_color(b, col, 0);
-	lv_obj_set_style_radius(b, 6, 0);
+	lv_obj_set_style_radius(b, 10, 0);
 	lv_obj_add_event_cb(b, cb, LV_EVENT_CLICKED, nullptr);
 	lv_obj_t *l = lv_label_create(b);
 	lv_label_set_text(l, txt);
-	lv_obj_set_style_text_font(l, &lv_font_montserrat_16, 0);
+	lv_obj_set_style_text_font(l, &lv_font_montserrat_28, 0);
 	lv_obj_center(l);
 	return b;
 }
@@ -74,6 +74,7 @@ static void set_btn_text(lv_obj_t *b, const char *txt) {
 /* --- create --- */
 lv_obj_t *screen_actions_create() {
 	lv_obj_t *scr = lv_obj_create(nullptr);
+	ui_screen_bg(scr);
 	lv_obj_set_style_bg_color(scr, COL_BG, 0);
 	lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
 	lv_obj_clear_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
@@ -81,7 +82,7 @@ lv_obj_t *screen_actions_create() {
 	/* barra superior */
 	lv_obj_t *top = lv_obj_create(scr);
 	lv_obj_set_pos(top, 0, 0);
-	lv_obj_set_size(top, SCREEN_W, 30);
+	lv_obj_set_size(top, SCREEN_W, 60);
 	lv_obj_set_style_bg_color(top, COL_CARD, 0);
 	lv_obj_set_style_radius(top, 0, 0);
 	lv_obj_set_style_border_width(top, 0, 0);
@@ -89,33 +90,34 @@ lv_obj_t *screen_actions_create() {
 	lv_obj_clear_flag(top, LV_OBJ_FLAG_SCROLLABLE);
 
 	lv_obj_t *back = lv_btn_create(top);
-	lv_obj_set_size(back, 34, 24);
-	lv_obj_align(back, LV_ALIGN_LEFT_MID, 6, 0);
+	lv_obj_set_size(back, 68, 48);
+	lv_obj_align(back, LV_ALIGN_LEFT_MID, 10, 0);
 	lv_obj_set_style_bg_color(back, COL_TEAL_D, 0);
 	lv_obj_add_event_cb(back, on_back, LV_EVENT_CLICKED, nullptr);
 	lv_obj_center(lv_label_create(back));
 	lv_label_set_text(lv_obj_get_child(back, 0), LV_SYMBOL_LEFT);
+	lv_obj_set_style_text_font(lv_obj_get_child(back, 0), &lv_font_montserrat_20, 0);
 
 	lbl_title = lv_label_create(top);
 	lv_label_set_text(lbl_title, "Acciones");
-	lv_obj_set_style_text_font(lbl_title, &lv_font_montserrat_16, 0);
+	lv_obj_set_style_text_font(lbl_title, &lv_font_montserrat_28, 0);
 	lv_obj_set_style_text_color(lbl_title, COL_TEXT, 0);
-	lv_obj_align(lbl_title, LV_ALIGN_LEFT_MID, 48, 0);
+	lv_obj_align(lbl_title, LV_ALIGN_LEFT_MID, 96, 0);
 
-	const lv_coord_t W = SCREEN_W - 24;
-	act_btn(scr, "SILENCIAR SIRENA",  COL_WARN,   12, 40,  W, on_silence);
-	act_btn(scr, "RECONOCER ALARMAS", COL_ORANGE, 12, 88,  W, on_ack);
+	const lv_coord_t W = SCREEN_W - 48;
+	act_btn(scr, "SILENCIAR SIRENA",  COL_WARN,   24, 80,  W, on_silence);
+	act_btn(scr, "RECONOCER ALARMAS", COL_ORANGE, 24, 170, W, on_ack);
 
 	lbl_ack_sub = lv_label_create(scr);
 	lv_label_set_text(lbl_ack_sub, "sin pendientes");
-	lv_obj_set_style_text_font(lbl_ack_sub, &lv_font_montserrat_12, 0);
+	lv_obj_set_style_text_font(lbl_ack_sub, &lv_font_montserrat_20, 0);
 	lv_obj_set_style_text_color(lbl_ack_sub, COL_MUTED, 0);
-	lv_obj_set_pos(lbl_ack_sub, 16, 130);
+	lv_obj_set_pos(lbl_ack_sub, 28, 250);
 
-	btn_mode = act_btn(scr, "SIRENA: AUTO", COL_TEAL_D, 12, 150, W, on_mode);
+	btn_mode = act_btn(scr, "SIRENA: AUTO", COL_TEAL_D, 24, 284, W, on_mode);
 
-	act_btn(scr, "RESET DIA", COL_TEAL, 12, 198, (SCREEN_W - 32) / 2, on_reset_day);
-	act_btn(scr, "RESET MES", COL_TEAL, SCREEN_W / 2 + 4, 198, (SCREEN_W - 32) / 2, on_reset_month);
+	act_btn(scr, "RESET DIA", COL_TEAL, 24, 374, (SCREEN_W - 64) / 2, on_reset_day);
+	act_btn(scr, "RESET MES", COL_TEAL, SCREEN_W / 2 + 8, 374, (SCREEN_W - 64) / 2, on_reset_month);
 
 	return scr;
 }

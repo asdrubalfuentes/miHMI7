@@ -82,5 +82,12 @@ extern lv_style_t st_unit;
 /* Crea un contenedor "tarjeta" con el estilo comun. */
 lv_obj_t *ui_card(lv_obj_t *parent);
 
+/* Fija el fondo de una pantalla (lv_obj_create(nullptr)) a PAL.bg. En la CYD
+ * (320x240) no hacia falta -- el layout siempre cubria toda la pantalla; en
+ * 800x480, con el layout todavia sin redisenar, sin esto se ve el azul de
+ * fabrica de LVGL en el area que los widgets no llegan a cubrir. Llamar justo
+ * despues de crear cada pantalla en su screen_*.cpp. */
+void ui_screen_bg(lv_obj_t *scr);
+
 /* Color asociado a un estado de salud de fuente. */
 lv_color_t ui_health_color(int health /* SrcHealth */);

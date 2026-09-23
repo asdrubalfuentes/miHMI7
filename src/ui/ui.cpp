@@ -25,51 +25,59 @@ void ui_init() {
 	lv_scr_load(s_splash);
 }
 
+/* Las transiciones deslizantes (lv_scr_load_anim, antes 200-250ms) se sacaron
+ * en esta version: a 800x480 nativo cada cuadro de la animacion redibuja ~5x
+ * mas pixeles que en la CYD original (320x240) en la misma ventana de tiempo
+ * -- eso es lo que se sintio en banco como "cambia muy lento entre
+ * pantallas". lv_scr_load() sin animacion cambia de una sola pasada. Se
+ * puede reintroducir la animacion (mas corta, o solo en algunas pantallas)
+ * una vez que el ancho de banda real del panel este mas afinado. */
+
 void ui_show_wells() {
 	if (!s_wells) s_wells = screen_wells_create();
 	screen_wells_update();
-	lv_scr_load_anim(s_wells, LV_SCR_LOAD_ANIM_MOVE_RIGHT, 250, 0, false);
+	lv_scr_load(s_wells);
 }
 
 void ui_show_well(uint8_t idx) {
 	if (!s_well) s_well = screen_well_create();
 	DataHub::instance().setSelectedWell(idx);
 	screen_well_update();
-	lv_scr_load_anim(s_well, LV_SCR_LOAD_ANIM_MOVE_LEFT, 250, 0, false);
+	lv_scr_load(s_well);
 }
 
 void ui_show_actions() {
 	if (!s_actions) s_actions = screen_actions_create();
 	screen_actions_update();
-	lv_scr_load_anim(s_actions, LV_SCR_LOAD_ANIM_MOVE_LEFT, 250, 0, false);
+	lv_scr_load(s_actions);
 }
 
 void ui_show_history() {
 	if (!s_history) s_history = screen_history_create();
 	screen_history_update();
-	lv_scr_load_anim(s_history, LV_SCR_LOAD_ANIM_MOVE_LEFT, 250, 0, false);
+	lv_scr_load(s_history);
 }
 
 void ui_show_settings() {
 	if (!s_settings) s_settings = screen_settings_create();
-	lv_scr_load_anim(s_settings, LV_SCR_LOAD_ANIM_MOVE_LEFT, 250, 0, false);
+	lv_scr_load(s_settings);
 }
 
 void ui_show_pin(void (*on_ok)()) {
 	if (!s_pin) s_pin = screen_pin_create();
 	screen_pin_prepare(on_ok);
-	lv_scr_load_anim(s_pin, LV_SCR_LOAD_ANIM_MOVE_LEFT, 200, 0, false);
+	lv_scr_load(s_pin);
 }
 
 void ui_show_config() {
 	if (!s_config) s_config = screen_config_create();
 	screen_config_enter();
-	lv_scr_load_anim(s_config, LV_SCR_LOAD_ANIM_MOVE_LEFT, 200, 0, false);
+	lv_scr_load(s_config);
 }
 
 void ui_show_help() {
 	if (!s_help) s_help = screen_help_create();
-	lv_scr_load_anim(s_help, LV_SCR_LOAD_ANIM_MOVE_LEFT, 250, 0, false);
+	lv_scr_load(s_help);
 }
 
 void ui_tick() {
