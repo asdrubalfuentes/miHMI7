@@ -3,6 +3,19 @@
 Versión del canal OTA: `MAJOR.MINOR.PATCH` (semver numérico). El firmware embebe
 `APP_VERSION`; el CI lo sobreescribe desde el tag `vX.Y.Z` (`FW_VERSION_OVERRIDE`).
 
+## 0.2.4 — OTA sin pantalla negra: recuadro chico sobre el fondo congelado
+
+- **Se quito el `fillScreen()` completo del OTA** (pedido de banco: la
+  pantalla se ponia negra entera al buscar/aplicar una actualizacion).
+  `net/ota_hmi.cpp` ahora solo dibuja un recuadro fijo de 420x130 centrado
+  -- el resto de la pantalla queda "congelado" tal cual la dejo LVGL (el
+  loop principal no vuelve a llamar `lv_timer_handler()` mientras el OTA
+  esta corriendo, asi que no hay conflicto con lo que ya esta dibujado).
+  Al terminar, `lv_obj_invalidate(lv_scr_act())` fuerza a LVGL a repintar
+  todo y el recuadro desaparece.
+- **El porcentaje ahora va DENTRO de la barra**, no debajo -- mismo cuidado
+  de v0.2.3 para que el digito nuevo tape siempre al viejo sin fantasma.
+
 ## 0.2.3 — barra de progreso del OTA: fin del "fantasma" de texto
 
 - **La barra de progreso (%) del OTA seguia viendose mal en banco tras el
