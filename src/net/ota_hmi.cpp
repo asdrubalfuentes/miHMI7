@@ -21,7 +21,14 @@ void draw(ota::Phase ph, int pct, const char *d) {
 	t.fillScreen(TFT_BLACK);
 	t.setTextColor(TFT_WHITE, TFT_BLACK);
 	t.setTextDatum(MC_DATUM);
-	t.drawString("Actualizacion de firmware", SCREEN_W / 2, 68, 7);
+
+	/* Font 7 (usado antes) es el set "7 segmentos" de LovyanGFX -- SOLO
+	 * digitos, sin letras -- por eso "Actualizacion de firmware" se
+	 * dibujaba con el ancho mal calculado y se salia de pantalla (reporte de
+	 * banco). Font 4 tiene alfabeto completo; setTextSize(2) lo agranda sin
+	 * perder glifos. */
+	t.setTextSize(2);
+	t.drawString("Actualizacion de firmware", SCREEN_W / 2, 68, 4);
 
 	const char *m = "";
 	switch (ph) {
@@ -33,7 +40,7 @@ void draw(ota::Phase ph, int pct, const char *d) {
 		case ota::Phase::Done:     m = "Listo. Reiniciando";  break;
 		case ota::Phase::Error:    m = "Error";               break;
 	}
-	t.drawString(m, SCREEN_W / 2, 168, 7);
+	t.drawString(m, SCREEN_W / 2, 168, 4);
 
 	if (ph == ota::Phase::Download) {
 		int w = SCREEN_W - 150;
@@ -42,8 +49,9 @@ void draw(ota::Phase ph, int pct, const char *d) {
 		t.fillRect(79, 256, fill, 44, TFT_GREEN);
 		char b[8];
 		snprintf(b, sizeof(b), "%d%%", pct);
-		t.drawString(b, SCREEN_W / 2, 344, 7);
+		t.drawString(b, SCREEN_W / 2, 344, 4);   /* "100%" SI tiene digitos, pero mejor consistente con Font4 */
 	}
+	t.setTextSize(1);
 	if (d && *d) t.drawString(d, SCREEN_W / 2, 412, 4);
 }
 

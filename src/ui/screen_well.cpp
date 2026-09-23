@@ -114,16 +114,29 @@ lv_obj_t *screen_well_create() {
 	lv_obj_set_style_pad_all(tk, 0, 0);
 	lv_obj_clear_flag(tk, LV_OBJ_FLAG_SCROLLABLE);
 
+	/* Cintillo con scroll FORZADO (no LV_LABEL_LONG_SCROLL_CIRCULAR): ese modo
+	 * solo anima si LVGL decide que el texto desborda, y en banco eso resulto
+	 * poco confiable (no se movia, o se movia pero pegado a la izquierda con
+	 * un ancho fijo que no coincidia con el contenido real). Ac aqui la
+	 * etiqueta se autoajusta a su contenido (sin ancho fijo) y una animacion
+	 * propia la desliza de derecha a izquierda sin parar, siempre -- "fijo
+	 * aunque quepa", como se pidio. tk ya recorta lo que se sale de su caja
+	 * (contenedor no-scrollable, comportamiento por defecto de LVGL). */
 	lbl_ticker = lv_label_create(tk);
-	lv_label_set_long_mode(lbl_ticker, LV_LABEL_LONG_SCROLL_CIRCULAR);
-	/* Mas angosto que el texto real (confirmado en banco: a SCREEN_W-24 no
-	 * desbordaba y no se movia) pero centrado en la barra, no pegado a la
-	 * izquierda (reporte de banco: "se mueve bien, pero no esta centrada"). */
-	lv_obj_set_width(lbl_ticker, 600);
+	lv_label_set_long_mode(lbl_ticker, LV_LABEL_LONG_CLIP);
 	lv_label_set_text(lbl_ticker, APP_NAME);
 	lv_obj_set_style_text_font(lbl_ticker, &lv_font_montserrat_16, 0);
 	lv_obj_set_style_text_color(lbl_ticker, COL_MUTED, 0);
-	lv_obj_align(lbl_ticker, LV_ALIGN_CENTER, 0, 0);
+	lv_obj_align(lbl_ticker, LV_ALIGN_LEFT_MID, 0, 0);   /* fija Y; la animacion solo toca X */
+
+	static lv_anim_t tickerAnim;
+	lv_anim_init(&tickerAnim);
+	lv_anim_set_var(&tickerAnim, lbl_ticker);
+	lv_anim_set_exec_cb(&tickerAnim, (lv_anim_exec_xcb_t)lv_obj_set_x);
+	lv_anim_set_values(&tickerAnim, SCREEN_W, -1800);   /* recorrido fijo, de sobra para el texto mas largo */
+	lv_anim_set_time(&tickerAnim, 45000);                /* ~57 px/s, velocidad de lectura comoda */
+	lv_anim_set_repeat_count(&tickerAnim, LV_ANIM_REPEAT_INFINITE);
+	lv_anim_start(&tickerAnim);
 
 	/* --- nivel (arco) --- */
 	arc_level = lv_arc_create(scr);
@@ -240,11 +253,19 @@ void screen_well_update() {
 	lv_label_set_text_fmt(lbl_name, "%u/%u", idx1, (unsigned)NUM_WELLS);
 	lv_label_set_text(lbl_stnbtn, d.name);
 
-	/* cintillo: Mi HMI | Estacion | version | hora | estado de comunicacion */
+	/* cintillo: nombre app | estacion | version | hora | enlace | RSSI |
+	   tramas OK/ERR | alarmas -- pedido en banco: mas datos de la estacion. */
 	char hm[8]; netclock::hm(hm, sizeof(hm));
-	char tk[160];
-	snprintf(tk, sizeof(tk), "%s   |   %s   |   v%s   |   %s   |   %s",
-	         APP_NAME, d.name, APP_VERSION, hm, comm_str());
+	char alm[48];
+	if (d.inAlarm())        snprintf(alm, sizeof(alm), "ALARMA: %s", first_alarm(d.alarms));
+	else if (d.hasLatched()) snprintf(alm, sizeof(alm), "pendiente: %s", first_alarm(d.alarmsLatched));
+	else                      snprintf(alm, sizeof(alm), "sin alarmas");
+
+	char tk[240];
+	snprintf(tk, sizeof(tk),
+	         "%s   |   %s   |   v%s   |   %s   |   %s   |   RSSI %d dBm   |   tramas %lu OK / %lu ERR   |   %s",
+	         APP_NAME, d.name, APP_VERSION, hm, comm_str(),
+	         d.rssi, (unsigned long)hub.txOk(), (unsigned long)hub.txErr(), alm);
 	lv_label_set_text(lbl_ticker, tk);
 
 	/* LVGL no formatea %f: usar snprintf de libc y set_text */

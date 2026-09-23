@@ -3,6 +3,27 @@
 Versión del canal OTA: `MAJOR.MINOR.PATCH` (semver numérico). El firmware embebe
 `APP_VERSION`; el CI lo sobreescribe desde el tag `vX.Y.Z` (`FW_VERSION_OVERRIDE`).
 
+## 0.2.1 — repo público (OTA), fix de fuente y cintillo con scroll forzado
+
+- **Repo pasado a público** (`asdrubalfuentes/miHMI7`): el OTA descarga
+  `version.txt`/`firmware.bin` de un GitHub Release por HTTPS sin
+  autenticación — contra un repo privado eso da 404, y era la causa real de
+  "no se pudo leer version.txt" al buscar actualización (no era la red).
+- **Bug de fuente encontrado y corregido** (`net/ota_hmi.cpp`,
+  `hal/panic_screen.cpp`): ambos usaban el índice de fuente heredado "7" de
+  LovyanGFX para texto normal — pero ese índice es el set **7 segmentos**
+  (solo dígitos, sin letras). Con texto real ("Actualizacion de firmware",
+  títulos de `panic_screen`) el ancho calculado salía mal y el texto/la
+  barra de progreso se salían de la pantalla. Cambiado a Font 4 (alfabeto
+  completo) + `setTextSize()` para mantener el tamaño grande.
+- **Cintillo de mensajes: scroll forzado**, no el automático de LVGL
+  (`LV_LABEL_LONG_SCROLL_CIRCULAR`, que resultó poco confiable en banco —
+  a veces no se movía, o se movía pero pegado a la izquierda). Ahora es una
+  animación propia (`lv_anim`) que desliza el texto de derecha a izquierda
+  sin parar, siempre, sin depender de que LVGL decida que "desborda".
+- **Cintillo con más datos de la estación**: RSSI, contador de tramas
+  OK/ERR y estado de alarmas (antes solo nombre/hora/estado de enlace).
+
 ## 0.2.0 — hardware verificado en banco + rediseño nativo a 800x480
 
 Todo lo pendiente de v0.1.0 se probó en banco (placa real, `smartpanle`

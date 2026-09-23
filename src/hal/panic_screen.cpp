@@ -70,8 +70,14 @@ static void draw(uint16_t bg, const char *kicker, const char *title,
 	t.drawFastHLine(0, 68, SCREEN_W, TFT_WHITE);
 
 	t.setTextDatum(MC_DATUM);
-	uint8_t tf = (title && strlen(title) <= 18) ? 7 : 4;
-	t.drawString(title, SCREEN_W / 2, 124, tf);
+	/* Font 7 (usado antes para titulos cortos) es el set "7 segmentos" de
+	 * LovyanGFX -- solo digitos, sin letras -- rompia el ancho calculado y
+	 * se salia de pantalla con texto real (mismo bug que en net/ota_hmi.cpp,
+	 * encontrado ahi primero). Font 4 (alfabeto completo) + setTextSize
+	 * para el mismo efecto de "mas grande en titulos cortos". */
+	t.setTextSize(title && strlen(title) <= 18 ? 2 : 1);
+	t.drawString(title, SCREEN_W / 2, 124, 4);
+	t.setTextSize(1);
 
 	t.setTextDatum(TL_DATUM);
 	int16_t y = 200;
