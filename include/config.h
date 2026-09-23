@@ -25,7 +25,7 @@
 
 /* ============================ Branding ============================ */
 #define APP_NAME        "HMI Captacion de Pozos"
-#define APP_VERSION     "0.2.2"
+#define APP_VERSION     "0.2.3"
 /* El CI (.github/workflows/release.yml) define FW_VERSION_OVERRIDE = X.Y.Z del
  * tag; esa es la version que compara el cliente OTA (net/ota_hmi). */
 #ifdef FW_VERSION_OVERRIDE

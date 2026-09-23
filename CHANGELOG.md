@@ -3,6 +3,23 @@
 Versión del canal OTA: `MAJOR.MINOR.PATCH` (semver numérico). El firmware embebe
 `APP_VERSION`; el CI lo sobreescribe desde el tag `vX.Y.Z` (`FW_VERSION_OVERRIDE`).
 
+## 0.2.3 — barra de progreso del OTA: fin del "fantasma" de texto
+
+- **La barra de progreso (%) del OTA seguia viendose mal en banco tras el
+  fix de fuente de v0.2.1** (video: "83%" con un digito fantasma superpuesto
+  al lado). No era un problema de fuente: `net/ota_hmi.cpp::draw()` hacia un
+  `fillScreen()` de la pantalla COMPLETA (800x480) en cada punto de
+  porcentaje durante la descarga -- hasta 100 veces, varias por segundo. El
+  panel RGB de esta placa no tiene doble buffer (el DMA lo escanea en vivo
+  desde el mismo buffer que la CPU esta escribiendo), asi que un redibujo
+  tan grande y tan frecuente se veia "partido" a mitad de escritura
+  (tearing) -- eso es lo que la camara capturo como texto superpuesto.
+  Arreglado: el fondo (titulo, mensaje, marco de la barra) se pinta UNA
+  sola vez al entrar a la fase de descarga; cada tick de porcentaje ahora
+  solo toca el interior de la barra + una caja de texto de ancho fijo
+  (evita tambien que un digito nuevo mas corto deje asomando el viejo).
+  Mucho menos que escribir para el panel en cada actualizacion.
+
 ## 0.2.2 — IP/RSSI en diagnostico, OTA cada 5 min, menos ruido serie
 
 - **IP y RSSI del HMI no se mostraban en Ajustes/Diagnostico**: se pedian a
